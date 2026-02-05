@@ -8,120 +8,109 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
     :root {
-      --primary: #3f51b5;
-      --primary-dark: #303f9f;
-      --surface: #121212;
-      --on-surface: #e0e0e0;
-      --elevation-2: 0 3px 6px rgba(0,0,0,0.4);
+      --bg: #0f0f1a;
+      --surface: rgba(30,30,50,0.92);
+      --text: #e0e0ff;
+      --accent: #8ab4f8;
     }
-    * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      font-family: 'Roboto', sans-serif;
-      background: var(--surface);
-      color: var(--on-surface);
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+      margin:0; height:100vh; font-family:Roboto,sans-serif; color:var(--text);
+      background: var(--bg) url('https://images.alphacoders.com/135/1356698.png') center/cover fixed;
+      overflow:hidden; display:flex; flex-direction:column;
     }
     #desktop {
-      flex: 1;
-      padding: 16px;
-      overflow-y: auto;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, 88px);
-      justify-content: center;
-      gap: 16px;
-      background: linear-gradient(135deg, #1e1e2f, #121212);
+      flex:1; padding:16px; overflow-y:auto;
+      display:grid; grid-template-columns:repeat(auto-fill,96px);
+      justify-content:center; gap:16px;
     }
-    .app-icon {
-      width: 88px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
+    .app {
+      width:96px; text-align:center; cursor:pointer; transition:0.2s;
     }
-    .app-icon:hover { transform: scale(1.12); }
-    .app-icon img {
-      width: 64px;
-      height: 64px;
-      border-radius: 18px;
-      background: rgba(255,255,255,0.08);
-      padding: 8px;
-      box-shadow: var(--elevation-2);
+    .app:hover { transform:scale(1.12); }
+    .app img {
+      width:64px; height:64px; border-radius:16px; background:rgba(255,255,255,0.1);
+      padding:8px; box-shadow:0 4px 12px rgba(0,0,0,0.6);
     }
-    .app-label {
-      margin-top: 8px;
-      font-size: 13px;
-      color: #b0bec5;
+    .app span { font-size:13px; display:block; margin-top:6px; color:#c0c8ff; }
+    #launcher {
+      position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(20px);
+      display:none; flex-direction:column; align-items:center; justify-content:center;
+      z-index:9999; padding:40px; overflow-y:auto;
     }
+    #launcher-grid {
+      display:grid; grid-template-columns:repeat(auto-fill,120px);
+      gap:24px; max-width:1200px;
+    }
+    #launcher .app img { width:80px; height:80px; }
+    #launcher .app span { font-size:15px; font-weight:500; }
     #taskbar {
-      height: 64px;
-      background: rgba(30,30,50,0.92);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid #333;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
-      box-shadow: 0 -4px 12px rgba(0,0,0,0.5);
+      height:64px; background:var(--surface); backdrop-filter:blur(24px);
+      border-top:1px solid #333; display:flex; align-items:center; padding:0 16px;
+      gap:12px; box-shadow:0 -4px 16px rgba(0,0,0,0.5); z-index:999;
     }
-    #start-btn {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: var(--primary);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      cursor: pointer;
-      box-shadow: var(--elevation-2);
+    #start { width:48px; height:48px; border-radius:50%; background:var(--accent);
+      color:#000; font-size:28px; display:flex; align-items:center; justify-content:center;
+      cursor:pointer; box-shadow:0 3px 10px rgba(138,180,248,0.4);
     }
-    #task-buttons {
-      display: flex;
-      gap: 12px;
+    .task { width:48px; height:48px; border-radius:12px; background:rgba(255,255,255,0.08);
+      display:flex; align-items:center; justify-content:center; color:#fff; font-size:24px;
+      cursor:pointer;
     }
-    .task-btn {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-size: 24px;
-      cursor: pointer;
-    }
-    #clock {
-      color: #b0bec5;
-      font-size: 14px;
-      text-align: right;
-    }
+    #clock { margin-left:auto; color:#b0c0ff; font-size:14px; }
   </style>
 </head>
 <body>
-  <div id="desktop">
-    <!-- shortcuts here -->
-    <div class="app-icon" data-launch="chrome">
-      <img src="https://codehs.com/uploads/bf7b7130c279ce42df3a72328f5bca3d" alt="Browser">
-      <div class="app-label">Browser</div>
-    </div>
-    <!-- add more -->
-  </div>
 
-  <div id="taskbar">
-    <div id="start-btn" class="material-icons">apps</div>
-    <div id="task-buttons"></div>
-    <div id="clock"></div>
-  </div>
+<div id="desktop">
+  <div class="app" data-url="https://www.google.com"><img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt=""><span>Google</span></div>
+  <div class="app" data-url="https://youtube.com"><img src="https://www.youtube.com/s/desktop/14e7d2c5/img/favicon_144x144.png" alt=""><span>YouTube</span></div>
+  <div class="app" data-url="https://drive.google.com"><img src="https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_48dp.png" alt=""><span>Drive</span></div>
+  <div class="app" data-url="https://docs.google.com"><img src="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico" alt=""><span>Docs</span></div>
+  <div class="app" data-url="https://photos.google.com"><img src="https://ssl.gstatic.com/photos/images/favicon2.png" alt=""><span>Photos</span></div>
+</div>
 
-  <script>
-    // basic launcher toggle (expand later)
-    document.getElementById('start-btn').addEventListener('click', () => {
-      alert('App launcher grid coming soon');
-    });
-  </script>
+<div id="taskbar">
+  <div id="start" class="material-icons">apps</div>
+  <div id="task-buttons"></div>
+  <div id="clock"></div>
+</div>
+
+<div id="launcher">
+  <div id="launcher-grid">
+    <div class="app" data-url="https://www.google.com"><img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt=""><span>Google</span></div>
+    <div class="app" data-url="https://youtube.com"><img src="https://www.youtube.com/s/desktop/14e7d2c5/img/favicon_144x144.png" alt=""><span>YouTube</span></div>
+    <div class="app" data-url="https://drive.google.com"><img src="https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_48dp.png" alt=""><span>Drive</span></div>
+    <div class="app" data-url="https://docs.google.com"><img src="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico" alt=""><span>Docs</span></div>
+    <div class="app" data-url="https://photos.google.com"><img src="https://ssl.gstatic.com/photos/images/favicon2.png" alt=""><span>Photos</span></div>
+    <div class="app" data-url="https://mail.google.com"><img src="https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon2.ico" alt=""><span>Gmail</span></div>
+    <div class="app" data-url="https://meet.google.com"><img src="https://www.gstatic.com/meet/user_branding_change.jpg" alt=""><span>Meet</span></div>
+    <div class="app" data-url="https://play.google.com/store"><img src="https://play-lh.googleusercontent.com/38AGKCqmbjZ9OuWx4YjssAz3Y0DTWbiM5HB0ove1pNBq_o9mtWfGszjZNxZdwt_vgHo" alt=""><span>Play Store</span></div>
+  </div>
+</div>
+
+<script>
+  const start = document.getElementById('start');
+  const launcher = document.getElementById('launcher');
+  const desktop = document.getElementById('desktop');
+  const taskbar = document.getElementById('taskbar');
+  const clock = document.getElementById('clock');
+
+  start.onclick = () => launcher.style.display = launcher.style.display === 'flex' ? 'none' : 'flex';
+  launcher.onclick = e => { if (e.target === launcher) launcher.style.display = 'none'; };
+
+  // open web apps
+  document.querySelectorAll('.app').forEach(el => {
+    el.onclick = () => {
+      const url = el.dataset.url;
+      if (url) window.open(url, '_blank', 'width=1200,height=800');
+      launcher.style.display = 'none';
+    };
+  });
+
+  // clock
+  setInterval(() => {
+    clock.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  }, 1000);
+</script>
 </body>
 </html>
