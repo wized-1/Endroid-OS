@@ -30,7 +30,7 @@
     body{background:#008080 url('https://4kwallpapers.com/images/wallpapers/windows-7-official-3840x2160-13944.jpg') center/cover no-repeat fixed}
     #desktop{position:relative;width:100vw;height:100vh;perspective:1200px}
     .window{position:absolute;min-width:260px;min-height:160px;border-radius:6px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,0.6);background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
-    .window.active{outline:2px solid rgba(0,120,215,0.5);box-shadow:0 8px 28px rgba(0,120,215,0.4)}
+    .window.active{outline:2px solid rgba(0,120,215,0.6);box-shadow:0 0 18px rgba(0,120,215,0.5), inset 0 0 8px rgba(255,255,255,0.2)}
     .window-body{height:calc(100% - 36px);overflow:auto;background:#f0f0f0}
     .title-bar{cursor:url('https://archive.org/download/windows7_cursors/aero-cursors/aero_move.cur'),move;height:36px;line-height:36px;user-select:none;background:linear-gradient(to bottom,#e0e0e0,#c0c0c0);border-bottom:1px solid #a0a0a0}
     @keyframes win7-flap{0%{opacity:0;transform:rotateX(-45deg) scale(0.9)}60%{opacity:1;transform:rotateX(8deg) scale(1.03)}100%{opacity:1;transform:rotateX(0) scale(1)}}
@@ -137,6 +137,14 @@
   document.getElementById('browser-shortcut').addEventListener('dblclick', function() {
     openApp(this.dataset.launch);
     this.classList.remove('selected');
+  });
+
+  // Close start menu when clicking outside
+  document.addEventListener('click', e => {
+    const menu = document.getElementById('start-menu');
+    if (!menu.contains(e.target) && !e.target.closest('#start-btn') && menu.style.display !== 'none') {
+      menu.style.display = 'none';
+    }
   });
 </script>
 
