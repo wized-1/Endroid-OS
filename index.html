@@ -1,152 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Endroid OS - Windows 7 Style Browser Desktop</title>
-  <meta name="description" content="Endroid OS - nostalgic Windows 7 desktop environment running in browser with classic apps and mod support." />
-  <meta name="keywords" content="endroid os, windows 7 simulator, browser desktop, retro os, windows 7 online" />
-  <meta name="robots" content="index, follow" />
-
-  <meta property="og:title" content="Endroid OS - Retro Windows 7 Experience" />
-  <meta property="og:description" content="Classic Windows 7-style desktop in your browser." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://yourdomain.com/" />
-  <meta property="og:image" content="https://yourdomain.com/preview.jpg" />
-
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Endroid OS - Windows 7 in Browser" />
-  <meta name="twitter:description" content="Nostalgic Windows 7 simulator with apps and retro UI." />
-  <meta name="twitter:image" content="https://yourdomain.com/preview.jpg" />
-
-  <link rel="icon" type="image/png" href="https://codehs.com/uploads/874a3f0402f63c983bcbf5a43a182493" />
-  <link rel="stylesheet" media="screen" href="https://fontlibrary.org/en/face/pixel-operator" type="text/css"/>
-  <link id="theme-css" rel="stylesheet" href="https://unpkg.com/7.css/dist/7.css" />
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Endroid OS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
-    :root{--taskbar-height:38px;--aero-blue:#0078d7;--text-shadow:1px 1px 2px rgba(0,0,0,0.6);--glass-blur:blur(12px);--glass-bg:rgba(245,245,245,0.3)}
-    @font-face{font-family:'Pixel Operator';src:url("https://fontlibrary.org/en/face/pixel-operator") format("woff2");font-display:swap}
-    html,body{box-sizing:border-box;height:100%;margin:0;overflow:hidden;user-select:none;font-family:'Pixel Operator',monospace;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-shadow:var(--text-shadow);cursor:url('https://archive.org/download/windows7_cursors/aero-cursors/aero_arrow.cur'),default}
-    body{background:#008080 url('https://4kwallpapers.com/images/wallpapers/windows-7-official-3840x2160-13944.jpg') center/cover no-repeat fixed}
-    #desktop{position:relative;width:100vw;height:100vh;perspective:1200px}
-    .window{position:absolute;min-width:260px;min-height:160px;border-radius:6px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,0.6);background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
-    .window.active{outline:2px solid rgba(0,120,215,0.6);box-shadow:0 0 18px rgba(0,120,215,0.5), inset 0 0 8px rgba(255,255,255,0.2)}
-    .window-body{height:calc(100% - 36px);overflow:auto;background:#f0f0f0}
-    .title-bar{cursor:url('https://archive.org/download/windows7_cursors/aero-cursors/aero_move.cur'),move;height:36px;line-height:36px;user-select:none;background:linear-gradient(to bottom,#e0e0e0,#c0c0c0);border-bottom:1px solid #a0a0a0}
-    @keyframes win7-flap{0%{opacity:0;transform:rotateX(-45deg) scale(0.9)}60%{opacity:1;transform:rotateX(8deg) scale(1.03)}100%{opacity:1;transform:rotateX(0) scale(1)}}
-    .window.opening{animation:win7-flap 300ms ease-out}
-    @keyframes fadeOut{from{opacity:1}to{opacity:0}}
-    .window.closing{animation:fadeOut 180ms ease-out forwards}
-    #taskbar{position:fixed;left:0;right:0;bottom:0;height:var(--taskbar-height);display:flex;align-items:center;gap:6px;padding:4px 8px;background:linear-gradient(to bottom,rgba(220,236,250,0.3),rgba(160,190,230,0.5),rgba(120,160,210,0.45));border-top:1px solid rgba(0,0,0,0.35);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);z-index:9999;box-shadow:0 -2px 10px rgba(0,0,0,0.5);overflow-x:auto;white-space:nowrap}
-    #task-buttons{flex:1;display:flex;gap:5px;overflow-x:auto;padding-right:10px;flex-shrink:1}
-    #clock{margin-left:auto;padding:0 10px;color:white;text-align:right;min-width:70px;font-size:12px;line-height:1.3;transition:filter .15s}
-    #clock:hover{filter:brightness(85%)}
-    #start-btn{display:flex;align-items:center;gap:6px;padding:4px 10px;height:30px;min-width:70px;background:transparent;border:none;cursor:pointer;transition:filter .2s}
-    #start-btn:hover{filter:brightness(115%)}
-    #start-btn-img{width:26px;height:26px;object-fit:contain}
-    #start-btn-text{color:white;font-size:12px;opacity:1;visibility:visible}
-    #start-menu{position:absolute;bottom:var(--taskbar-height);left:8px;width:340px;height:460px;display:none;flex-direction:row;border:1px solid #1e5799;border-radius:8px;overflow:hidden;background:linear-gradient(to bottom,#2a6dc4 0%,#1e5799 100%);box-shadow:0 8px 24px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.15);z-index:9998;backdrop-filter:blur(4px)}
-    #start-menu.opening{display:flex;animation:start-pop 220ms ease-out}
-    @keyframes start-pop{0%{opacity:0;transform:scale(0.92) translateY(20px)}100%{opacity:1;transform:scale(1) translateY(0)}}
-    .banner{width:78px;background:linear-gradient(to bottom,#3a8de0,#1e5799);color:white;font-weight:bold;font-size:56px;writing-mode:vertical-rl;text-orientation:mixed;display:flex;align-items:flex-end;justify-content:center;padding-bottom:16px;text-shadow:0 2px 4px rgba(0,0,0,0.5);box-shadow:inset -2px 0 6px rgba(0,0,0,0.3)}
-    .menu-items{flex:1;background:rgba(255,255,255,0.12);backdrop-filter:blur(6px);padding:12px 10px;display:flex;flex-direction:column;gap:4px}
-    .menu-items button{padding:9px 14px;border:none;border-radius:4px;background:rgba(255,255,255,0.08);color:white;text-align:left;font-size:13px;cursor:pointer;transition:all 0.14s ease;text-shadow:0 1px 2px rgba(0,0,0,0.4)}
-    .menu-items button:hover{background:rgba(255,255,255,0.22);transform:translateX(3px);box-shadow:0 2px 8px rgba(0,0,0,0.3)}
-    .menu-items button:active{background:rgba(255,255,255,0.15);transform:translateX(1px)}
-    .banner button{background:rgba(255,255,255,0.15);border:none;color:white;font-size:11px;padding:4px 0;cursor:pointer;transition:background 0.15s}
-    .banner button:hover{background:rgba(255,255,255,0.3)}
-    #context-menu{position:absolute;z-index:10000;background:var(--glass-bg);backdrop-filter:var(--glass-blur);border:1px solid #888;border-radius:4px;padding:4px 0;box-shadow:2px 4px 12px rgba(0,0,0,0.4);opacity:0;visibility:hidden;transform:scale(0.96);transition:all 140ms ease}
-    #context-menu.show{opacity:1;visibility:visible;transform:scale(1)}
-    #context-menu li{padding:6px 24px 6px 12px;cursor:pointer;white-space:nowrap;transition:background 0.1s}
-    #context-menu li:hover{background:var(--aero-blue);color:white}
-    #drag-box{position:absolute;border:1px dashed var(--aero-blue);background:rgba(0,120,215,0.18);pointer-events:none;z-index:9999;display:none}
-    .shortcut{display:inline-block;width:72px;margin:6px;text-align:center;cursor:pointer}
-    .shortcut img{width:48px;height:48px;image-rendering:pixelated}
-    .shortcut-label{margin-top:4px;font-size:12px;color:white;word-break:break-word}
-    .shortcut.selected{background:rgba(0,120,215,0.35);border-radius:4px;outline:1px solid rgba(255,255,255,0.4)}
-    button,.task-button,.menu-items button,.shortcut,a{cursor:url('https://archive.org/download/windows7_cursors/aero-cursors/aero_link.cur'),pointer}
-    input,textarea,select,.window-body [contenteditable]{cursor:url('https://archive.org/download/windows7_cursors/aero-cursors/aero_select.cur'),text}
-    ::-webkit-scrollbar{width:9px;height:9px}
-    ::-webkit-scrollbar-track{background:rgba(0,0,0,0.2)}
-    ::-webkit-scrollbar-thumb{background:#5a8ad0;border:1px solid #3a6ab0;border-radius:4px}
-    ::-webkit-scrollbar-thumb:hover{background:#6a9ae0}
-    body.classic-theme{font-family:"MS Sans Serif",Tahoma,sans-serif;background:#008080}
-    body.classic-theme #taskbar{background:#c0c0c0;border-top:2px solid white;border-left:2px solid white;border-right:2px solid #808080;border-bottom:2px solid #808080;backdrop-filter:none}
-    body.classic-theme .task-button,body.classic-theme #start-btn{border:2px outset #dfdfdf;background:#c0c0c0;font-family:"MS Sans Serif",Tahoma,sans-serif}
-    body.classic-theme .task-button:active,body.classic-theme #start-btn:active{border-style:inset}
-    #battery-icon,#browser-shortcut-icon,#start-btn-img{transition:filter .18s}
-    #battery-icon:hover,#browser-shortcut-icon:hover,#start-btn-img:hover{filter:brightness(120%)}
-    .shrinking{animation:shrinkOut 220ms forwards}
-    @keyframes shrinkOut{to{transform:scale(0.4);opacity:0}}
-    .no-scrollbars{overflow:hidden !important}
-    @media (max-width:600px){
-      #start-btn{padding:3px 8px;min-width:60px;height:28px}
-      #start-btn-img{width:24px;height:24px}
-      #start-btn-text{font-size:11px}
-      #taskbar{padding:3px 6px;gap:4px}
-      #taskbar{height:34px}
-      :root{--taskbar-height:34px}
+    :root {
+      --primary: #3f51b5;
+      --primary-dark: #303f9f;
+      --surface: #121212;
+      --on-surface: #e0e0e0;
+      --elevation-2: 0 3px 6px rgba(0,0,0,0.4);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: var(--surface);
+      color: var(--on-surface);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    #desktop {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 88px);
+      justify-content: center;
+      gap: 16px;
+      background: linear-gradient(135deg, #1e1e2f, #121212);
+    }
+    .app-icon {
+      width: 88px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .app-icon:hover { transform: scale(1.12); }
+    .app-icon img {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.08);
+      padding: 8px;
+      box-shadow: var(--elevation-2);
+    }
+    .app-label {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #b0bec5;
+    }
+    #taskbar {
+      height: 64px;
+      background: rgba(30,30,50,0.92);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.5);
+    }
+    #start-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      cursor: pointer;
+      box-shadow: var(--elevation-2);
+    }
+    #task-buttons {
+      display: flex;
+      gap: 12px;
+    }
+    .task-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    #clock {
+      color: #b0bec5;
+      font-size: 14px;
+      text-align: right;
     }
   </style>
 </head>
 <body>
-
-<div id="desktop" tabindex="0" aria-label="Desktop">
-  <div class="shortcut" id="browser-shortcut" data-launch="chrome" style="display:inline-block;text-align:center;width:70px;margin:5px;cursor:default;">
-    <img id="browser-shortcut-icon" src="https://codehs.com/uploads/bf7b7130c279ce42df3a72328f5bca3d" alt="Browser" title="Browse the modern web!" style="width:50px;height:50px;cursor:url('https://archive.org/download/windows7_cursors/aero-cursors/aero_arrow.cur'),default;">
-    <div class="shortcut-label" style="margin-top:4px;font-size:12px;color:white;">Browser</div>
+  <div id="desktop">
+    <!-- shortcuts here -->
+    <div class="app-icon" data-launch="chrome">
+      <img src="https://codehs.com/uploads/bf7b7130c279ce42df3a72328f5bca3d" alt="Browser">
+      <div class="app-label">Browser</div>
+    </div>
+    <!-- add more -->
   </div>
 
-  <div id="drag-box"></div>
-
   <div id="taskbar">
-    <a id="start-btn" class="button" title="Click here for applications!">
-      <img id="start-btn-img" src="https://codehs.com/uploads/6e7ee22c8950240a0f971178b13ef6ad" alt="Start">
-      <span id="start-btn-text">Start</span>
-    </a>
+    <div id="start-btn" class="material-icons">apps</div>
     <div id="task-buttons"></div>
     <div id="clock"></div>
   </div>
 
-  <div id="start-menu">
-    <div class="banner">Endroid OS
-      <button title="Click to show all!" onclick="const buttonData=[{dataLaunch:'word',title:'Type whatever you like!',text:'Word'},{dataLaunch:'winamp',title:'Play your favorite music!',text:'WinAmp'},{dataLaunch:'properties',title:'Customize your desktop experience!',text:'Desktop Properties'},{dataLaunch:'welcome',title:'Welcome to Endroid OS',text:'Welcome'},{dataLaunch:'tutorial',title:'Learn about Endroid OS',text:'Tutorial'}];buttonData.forEach(data=>{var newButton=document.createElement('button');newButton.setAttribute('data-launch',data.dataLaunch);newButton.setAttribute('title',data.title);newButton.innerText=data.text;document.querySelector('.menu-items').appendChild(newButton)});this.remove();" style="transform:rotate(-90deg);width:5px;position:absolute;top:0;left:0;right:0;">All Programs</button>
-      <button data-launch="cmd" title="Manage with Command Prompt!" style="transform:rotate(-90deg);width:10px;position:absolute;bottom:0;left:0;right:0;"> ⠀ ⠀Console ⠀</button>
-    </div>
-    <div class="menu-items">
-      <button data-launch="notepad" title="Type whatever you like!">Notepad</button>
-      <button data-launch="about" title="Learn about this desktop!">About</button>
-      <button data-launch="chrome" title="Browse the modern web!">Browser</button>
-      <button data-launch="jspaint" title="Paint whatever you like!">MS Paint</button>
-      <button data-launch="cmd" title="Manage with Command Prompt!">Command Prompt</button>
-      <input id="search-items" type="text" placeholder="Search programs and files" style="position:absolute;bottom:0;left:0;right:0;">
-    </div>
-  </div>
-
-  <ul id="context-menu" class="menu" role="menu">
-    <li role="menuitem" data-action="new" title="Create a new document!">New</li>
-    <li role="menuitem" data-action="refresh" title="Refresh for better performance!">Refresh</li>
-    <li role="menuitem" data-action="properties" title="Customize your desktop experience!">Properties</li>
-  </ul>
-</div>
-
-<script src="os.js" defer></script>
-<script src="third-parties/v86.bundle.min.mjs"></script>
-<script src="modloader.js"></script>
-<script>
-  document.getElementById('browser-shortcut').addEventListener('dblclick', function() {
-    openApp(this.dataset.launch);
-    this.classList.remove('selected');
-  });
-
-  // Close start menu when clicking outside
-  document.addEventListener('click', e => {
-    const menu = document.getElementById('start-menu');
-    if (!menu.contains(e.target) && !e.target.closest('#start-btn') && menu.style.display !== 'none') {
-      menu.style.display = 'none';
-    }
-  });
-</script>
-
+  <script>
+    // basic launcher toggle (expand later)
+    document.getElementById('start-btn').addEventListener('click', () => {
+      alert('App launcher grid coming soon');
+    });
+  </script>
 </body>
 </html>
