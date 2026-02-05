@@ -1,216 +1,145 @@
-// modloader.js
-(async function loadBnacMods() {
-  console.log('[BNAC Loader] Starting mod loader…');
+// modloader.js - Improved & cleaned version
+(async function loadEndroidMods() {
+  console.log('[Endroid Mod Loader] Starting...');
 
   const modsFolder = 'mods/';
   const appRegistry = (window.Apps ||= {});
-  console.log('[BNAC Loader] Using mods folder:', modsFolder);
 
-  // Wait until DOM is ready
-  const ready = () =>
-    new Promise((res) => {
-      if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        console.log('[BNAC Loader] DOM already ready.');
-        return res();
-      }
-      console.log('[BNAC Loader] Waiting for DOMContentLoaded…');
-      document.addEventListener('DOMContentLoaded', () => {
-        console.log('[BNAC Loader] DOMContentLoaded fired.');
-        res();
-      }, { once: true });
-    });
-  await ready();
+  // Wait for DOM
+  await new Promise(res => {
+    if (document.readyState !== 'loading') return res();
+    document.addEventListener('DOMContentLoaded', res, { once: true });
+  });
 
-  // Look for .menu-items inside #start-menu
-  console.log('[BNAC Loader] Looking for #start-menu .menu-items…');
-  const startMenu = document.querySelector('#start-menu .menu-items');
-  if (!startMenu) {
-    console.error('[BNAC Loader] Could not find .menu-items inside #start-menu.');
+  const startMenuItems = document.querySelector('#start-menu .menu-items');
+  if (!startMenuItems) {
+    console.error('[Endroid Mod Loader] Start menu container not found.');
     return;
   }
-  console.log('[BNAC Loader] Found Start Menu container.');
 
-  // —————————————————————————————————————————————
-  // Utilities
-  // —————————————————————————————————————————————
-
-  function cleanBase64(s) {
-    console.log('[BNAC Loader] Cleaning base64 string…');
-    if (!s) {
-      console.warn('[BNAC Loader] cleanBase64 called with empty string.');
-      return '';
-    }
-    s = s.replace(/^\uFEFF/, ''); // strip BOM
-    s = s.replace(/\s+/g, ''); // strip whitespace/newlines
-    console.log('[BNAC Loader] Base64 cleaned, length:', s.length);
-    return s;
+  // ────────────────────────────────────────────────
+  // Helpers
+  // ────────────────────────────────────────────────
+  function cleanBase64(str) {
+    return (str || '').replace(/^\uFEFF/, '').replace(/\s+/g, '');
   }
 
-  function decodeBase64Strict(str, fileName) {
-    console.log(`[BNAC Loader] Decoding base64 for ${fileName}…`);
+  function safeAtob(str, filename) {
     try {
-      const decoded = atob(str);
-      console.log(`[BNAC Loader] Successfully decoded ${fileName}, length:`, decoded.length);
-      return decoded;
+      return atob(str);
     } catch (e) {
-      console.error(`[BNAC Loader] Base64 decode failed for ${fileName}.`, e);
+      console.error(`Base64 decode failed: ${filename}`, e);
       return null;
     }
   }
 
-  function extractAppDefinition(base64, fileName) {
-    console.log(`[BNAC Loader] Extracting app definition from ${fileName}…`);
+  function extractAppPayload(base64, filename) {
     const cleaned = cleanBase64(base64);
-    const decoded = decodeBase64Strict(cleaned, fileName);
-    if (decoded == null) {
-      console.warn(`[BNAC Loader] Skipping ${fileName} due to decode failure.`);
-      return null;
-    }
+    const decoded = safeAtob(cleaned, filename);
+    if (!decoded) return null;
 
-    // Show decoded code in a collapsible group
-    if (console.groupCollapsed) {
-      console.groupCollapsed(`[BNAC Loader] ▼ Decoded code from ${fileName}`);
-      console.log(decoded);
-      console.groupEnd();
-    } else {
-      console.log(`[BNAC Loader] Decoded code from ${fileName} (array fallback):`, decoded.split('\n'));
-    }
-
-    const match = decoded.match(/app\.bnacJS-BNAOS-application\s*\(\s*([\s\S]*?)\s*\)\s*$/);
+    const match = decoded.match(/app\.endroidJS-application\s*\(\s*([\s\S]*?)\s*\)\s*$/);
     if (!match) {
-      console.error(`[BNAC Loader] ${fileName} must be wrapped in app.bnacJS-BNAOS-application({})`);
+      console.warn(`Invalid format in ${filename} - missing app.endroidJS-application({…}) wrapper`);
       return null;
     }
 
-    const inner = match[1].trim();
-    if (!/^\{[\s\S]*\}$/.test(inner)) {
-      console.error(`[BNAC Loader] ${fileName} wrapper found, but payload is not a single object literal.`);
+    const payload = match[1].trim();
+    if (!/^\{[\s\S]*\}$/.test(payload)) {
+      console.warn(`Payload in ${filename} is not a valid object literal`);
       return null;
     }
 
-    console.log(`[BNAC Loader] Extracted app object code from ${fileName}, length:`, inner.length);
-    return inner;
+    return payload;
   }
 
-  function uniqueKeyFromTitle(title) {
-    console.log('[BNAC Loader] Generating unique key for title:', title);
-    const base = (title || 'mod_app').toLowerCase().replace(/\s+/g, '_').replace(/[^\w\-]+/g, '');
-    let key = base || 'mod_app';
-    let i = 2;
-    while (Object.prototype.hasOwnProperty.call(appRegistry, key)) {
-      console.warn(`[BNAC Loader] Key collision for "${key}", trying next…`);
-      key = `${base}_${i++}`;
+  function generateSafeKey(title) {
+    let key = (title || 'mod_app')
+      .toLowerCase()
+      .replace(/\s+/g, '_')
+      .replace(/[^a-z0-9_-]/g, '');
+    
+    if (!key) key = 'mod_app';
+    
+    let counter = 2;
+    while (key in appRegistry) {
+      key = `${key.replace(/_\d+$/, '') || 'mod_app'}_${counter++}`;
     }
-    console.log('[BNAC Loader] Generated key:', key);
     return key;
   }
 
-  function injectStartMenuButton(appKey, appObj) {
-    console.log(`[BNAC Loader] Injecting Start Menu button for ${appKey}…`);
+  function addToStartMenu(key, app) {
     const btn = document.createElement('button');
-    btn.setAttribute('data-launch', appKey);
-    btn.setAttribute('title', appObj.description || `Launch ${appObj.title || appKey}`);
-    btn.textContent = appObj.title || appKey;
-    startMenu.appendChild(btn);
+    btn.dataset.launch = key;
+    btn.title = app.description || app.title || key;
+    btn.textContent = app.title || key;
+    startMenuItems.appendChild(btn);
+  }
 
-    // Verify it was actually added
-    const found = startMenu.querySelector(`button[data-launch="${appKey}"]`);
-    if (found) {
-      console.log(`[BNAC Loader] ✅ Button for "${appKey}" successfully added to Start Menu.`);
-    } else {
-      console.warn(`[BNAC Loader] ⚠️ Tried to add button for "${appKey}", but it was not found in Start Menu.`);
+  function registerApp(code, filename) {
+    if (!code) return;
+
+    let appDef;
+    try {
+      appDef = (0, eval)('(' + code + ')');
+    } catch (e) {
+      console.error(`Eval failed in ${filename}:`, e);
+      return;
+    }
+
+    if (!appDef || typeof appDef !== 'object') {
+      console.warn(`Invalid app object in ${filename}`);
+      return;
+    }
+
+    const key = generateSafeKey(appDef.title);
+    appRegistry[key] = appDef;
+
+    try {
+      addToStartMenu(key, appDef);
+      console.log(`Loaded mod: ${appDef.title || key} (${key}) from ${filename}`);
+    } catch (e) {
+      console.error(`Failed to add ${key} to Start menu:`, e);
     }
   }
 
-  function injectApp(appCode, fileName) {
-    console.log(`[BNAC Loader] Injecting app from ${fileName}…`);
-    if (!appCode || typeof appCode !== 'string') {
-      console.error(`[BNAC Loader] ${fileName} produced invalid app code.`);
-      return;
-    }
-
-    let appObj;
+  // ────────────────────────────────────────────────
+  // Discover & load .mod files
+  // ────────────────────────────────────────────────
+  async function listModFiles() {
     try {
-      appObj = (0, eval)('(' + appCode + ')');
-      console.log(`[BNAC Loader] Evaluated app object from ${fileName}.`);
+      const res = await fetch(modsFolder, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await res.text();
+      const matches = [...text.matchAll(/href="([^"]+\.(?:mod|bnac))"/gi)];
+      return matches.map(m => m[1].replace(/^\.?\//, ''));
     } catch (e) {
-      console.error(`[BNAC Loader] Failed to evaluate app object from ${fileName}.`, e);
-      console.debug('[BNAC Loader] Offending code preview:', appCode.slice(0, 200));
-      return;
-    }
-
-    if (typeof appObj !== 'object' || appObj == null) {
-      console.error(`[BNAC Loader] ${fileName} did not evaluate to an object.`);
-      return;
-    }
-
-    const appKey = uniqueKeyFromTitle(appObj.title);
-    appRegistry[appKey] = appObj;
-    console.log(`[BNAC Loader] Registered app "${appObj.title}" under key "${appKey}".`);
-
-    try {
-      injectStartMenuButton(appKey, appObj);
-    } catch (e) {
-      console.error(`[BNAC Loader] Failed to inject Start Menu button for ${fileName}.`, e);
-    }
-
-    console.log(`[BNAC Loader] Finished loading mod: ${appObj.title || appKey} from ${fileName}`);
-  }
-
-  // —————————————————————————————————————————————
-  // Discovery: list .bnac in /mods
-  // —————————————————————————————————————————————
-
-  async function getBnacFiles() {
-    console.log('[BNAC Loader] Fetching list of .bnac files from mods folder…');
-    try {
-      const listing = await fetch(modsFolder, { cache: 'no-store' }).then((r) => r.text());
-      console.log('[BNAC Loader] Got directory listing, length:', listing.length);
-      const matches = [...listing.matchAll(/href="([^"]+\.bnac)"/gi)];
-      console.log('[BNAC Loader] Found .bnac matches:', matches.map(m => m[1]));
-      return matches.map((m) => m[1].replace(/^\.?\//, ''));
-    } catch (e) {
-      console.warn('[BNAC Loader] Could not list mods folder. Provide mods/manifest.json instead.', e);
+      console.warn('[Endroid Mod Loader] Cannot list mods folder:', e);
       return [];
     }
   }
 
-  // —————————————————————————————————————————————
-  // Load and inject
-  // —————————————————————————————————————————————
+  const files = await listModFiles();
+  console.log(`Found ${files.length} mod file(s):`, files);
 
-  console.log('[BNAC Loader] Beginning load cycle…');
-  const bnacFiles = await getBnacFiles();
-  console.log('[BNAC Loader] Files to load:', bnacFiles);
+  for (const file of files) {
+    const url = modsFolder + file;
+    console.log(`Loading: ${file}`);
 
-    for (const file of bnacFiles) {
-      const url = modsFolder + file;
-      console.log(`[BNAC Loader] Loading file ${file} from ${url}…`);
-    
-      try {
-        const response = await fetch(url, { cache: 'no-store' });
-        if (!response.ok) {
-          console.error(`[BNAC Loader] HTTP error ${response.status} for ${file}`);
-          throw new Error(`HTTP ${response.status}`);
-        }
-    
-        console.log(`[BNAC Loader] Successfully fetched ${file}.`);
-        const content = await response.text();
-    
-        console.log(`[BNAC Loader] Extracting code from ${file}…`);
-        const appCode = extractAppDefinition(content, file);
-    
-        if (appCode) {
-          console.log(`[BNAC Loader] Injecting app from ${file}…`);
-          injectApp(appCode, file);
-        } else {
-          console.warn(`[BNAC Loader] Skipped ${file} due to invalid wrapper or code.`);
-        }
-    
-      } catch (e) {
-        console.error(`[BNAC Loader] Error loading ${file}:`, e);
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const text = await res.text();
+      const payload = extractAppPayload(text, file);
+
+      if (payload) {
+        registerApp(payload, file);
       }
+    } catch (err) {
+      console.error(`Failed to load ${file}:`, err);
     }
+  }
 
-  console.log('[BNAC Loader] Done loading all mods.');
+  console.log('[Endroid Mod Loader] Finished.');
 })();
